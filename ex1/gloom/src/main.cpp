@@ -9,15 +9,13 @@
 // Standard headers
 #include <cstdlib>
 
-
 // A callback which allows GLFW to report errors whenever they occur
 static void glfwErrorCallback(int error, const char *description)
 {
     fprintf(stderr, "GLFW returned an error:\n\t%s (%i)\n", description, error);
 }
 
-
-GLFWwindow* initialise()
+GLFWwindow *initialise()
 {
     // Initialise GLFW
     if (!glfwInit())
@@ -36,10 +34,10 @@ GLFWwindow* initialise()
 
     // Set additional window options
     glfwWindowHint(GLFW_RESIZABLE, windowResizable);
-    glfwWindowHint(GLFW_SAMPLES, windowSamples);  // MSAA
+    glfwWindowHint(GLFW_SAMPLES, windowSamples); // MSAA
 
     // Create window using GLFW
-    GLFWwindow* window = glfwCreateWindow(windowWidth,
+    GLFWwindow *window = glfwCreateWindow(windowWidth,
                                           windowHeight,
                                           windowTitle.c_str(),
                                           nullptr,
@@ -66,11 +64,10 @@ GLFWwindow* initialise()
     return window;
 }
 
-
-int main(int argc, char* argb[])
+int main(int argc, char *argb[])
 {
     // Initialise window using GLFW
-    GLFWwindow* window = initialise();
+    GLFWwindow *window = initialise();
 
     // Run an OpenGL application using this window
     runProgram(window);
