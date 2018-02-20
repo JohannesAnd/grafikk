@@ -2,6 +2,7 @@
 #include "program.hpp"
 #include "gloom/gloom.hpp"
 #include "gloom/shader.hpp"
+#include "textures/utilities.hpp"
 
 void runProgram(GLFWwindow *window)
 {
@@ -28,55 +29,54 @@ void runProgram(GLFWwindow *window)
     glBindBuffer(GL_ARRAY_BUFFER, buffer);
 
     float vertices[] = {
-        -0.40f,
-        -0.25f,
-        0.6f,
-        0.10f,
-        -0.25f,
-        0.6f,
-        -0.15f,
-        0.30f,
-        0.6f,
-        -0.10f,
-        -0.25f,
-        0.7f,
-        0.40f,
-        -0.25f,
-        0.7f,
-        0.15f,
-        0.30f,
-        0.7f,
-        -0.25f,
-        -0.58f,
-        0.8f,
-        0.25f,
-        -0.58f,
-        0.8f,
-        0.00f,
-        -0.03f,
-        0.8f,
-    };
+        -0.5f, -0.5f, 0.6f, 0.0f, 0.0f,
+        0.50f, -0.5f, 0.6f, 1.0f, 1.0f,
+        -0.5f, 0.50f, 0.6f, 1.0f, 0.0f};
 
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), &vertices, GL_STATIC_DRAW);
-
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 3, 0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 5, 0);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 5, (void *)12);
 
     glEnableVertexAttribArray(0);
+    glEnableVertexAttribArray(1);
+
+    // Index buffer
 
     unsigned int indexBuffer = 1;
 
     glGenBuffers(1, &indexBuffer);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
 
-    unsigned int indexBufferData[] = {0, 1, 2, 3, 4, 5, 6, 7, 8};
+    unsigned int indexBufferData[] = {0, 1, 2};
 
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indexBufferData), &indexBufferData, GL_STATIC_DRAW);
+
+    // Texture
+
+    unsigned int texture = 0;
+
+    glGenTextures(1, &texture);
+    glBindTexture(GL_TEXTURE_2D, texture);
+
+    PNGImage image = loadPNGFile("../gloom/src/textures/diamond.png");
+
+    std::cout << image.pixels[0] << std::endl;
+
+    glTextureParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTextureParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTextureParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTextureParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image.width, image.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, &image.pixels[0]);
+
+    glBindTexture(GL_TEXTURE_2D, 0);
+    glBindTextureUnit(0, texture);
+
+    // Shaders
 
     Gloom::Shader shader;
     shader.makeBasicShader("../gloom/shaders/simple.vert",
                            "../gloom/shaders/simple.frag");
-
-    shader.activate();
 
     // Rendering Loop
 
@@ -86,6 +86,7 @@ void runProgram(GLFWwindow *window)
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         // Draw your scene here
+        shader.activate();
 
         glBindVertexArray(vao);
 
