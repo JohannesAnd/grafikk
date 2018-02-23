@@ -4,6 +4,9 @@
 #include "textures/utilities.hpp"
 #include "gloom/shader.hpp"
 
+#include <glm/glm.hpp>
+#include <glm/gtx/transform.hpp>
+
 int generateVertexArray(float *vertices, float *textureCoordinates, unsigned int *indices, unsigned int vertexCount, unsigned int triangleCount)
 {
     unsigned int vertexArrayID;
@@ -41,15 +44,23 @@ int loadGLTexture(PNGImage image)
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image.width, image.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, &image.pixels[0]);
+
+    glGenerateMipmap(GL_TEXTURE_2D);
 
     printGLError();
 
     return textureID;
 }
+
+glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 0.0f);
+glm::vec3 orientation = glm::vec3(0.0f, 0.0f, -1.0f);
+glm::mat4 perspectiveMatrix = glm::perspective(glm::radians(90.0f), (float)windowWidth / windowHeight, 0.1f, 1000.0f);
+glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
+glm::mat4 mvp = glm::mat4(1.0f);
 
 void runProgram(GLFWwindow *window)
 {
@@ -63,22 +74,22 @@ void runProgram(GLFWwindow *window)
     // Set default colour after clearing the colour buffer
     glClearColor(0.3f, 0.5f, 0.8f, 1.0f);
 
-    PNGImage image = loadPNGFile("../gloom/src/textures/diamond.png");
+    PNGImage image = loadPNGFile("../gloom/src/textures/minecraftBig.png");
     std::cout << "Loaded image with size " << image.width << ", " << image.height << std::endl;
     int textureID = loadGLTexture(image);
 
     float vertices[] = {
-        -0.9f, -0.9f, 0,
-        0.9f, -0.9f, 0,
-        0.9f, 0.9f, 0,
-        -0.9f, 0.9f, 0};
+        -20.0f, -20.0f, -10.0f,
+        20.0f, -20.0f, -10.0f,
+        20.0f, 20.0f, -10.0f,
+        -20.0f, 20.0f, -10.0f};
+
     float textureCoordinates[] = {
         0, 0,
         1, 0,
         1, 1,
         0, 1};
-    unsigned int indices[] = {
-        0, 1, 2, 0, 2, 3};
+    unsigned int indices[] = {0, 1, 2, 0, 2, 3};
 
     unsigned int vertexCount = 4;
     unsigned int triangleCount = 2;
@@ -91,8 +102,9 @@ void runProgram(GLFWwindow *window)
     shader.attach("../gloom/shaders/simple.vert");
     shader.attach("../gloom/shaders/simple.frag");
     shader.link();
+    shader.activate();
 
-    // Set up your scene here (create Vertex Array Objects, etc.)
+    GLuint matrixUniform = glGetUniformLocation(shader.get(), "matrix");
 
     // Rendering Loop
     while (!glfwWindowShouldClose(window))
@@ -100,8 +112,11 @@ void runProgram(GLFWwindow *window)
         // Clear colour and depth buffers
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+        mvp = perspectiveMatrix * glm::lookAt(cameraPos, cameraPos + orientation, up);
+        glm::mat4 matrix = mvp;
+        glUniformMatrix4fv(matrixUniform, 1, GL_FALSE, &matrix[0][0]);
+
         // Draw your scene here
-        shader.activate();
         glBindVertexArray(vaoID);
         glDrawElements(GL_TRIANGLES, 3 * triangleCount, GL_UNSIGNED_INT, 0);
 
@@ -120,5 +135,29 @@ void handleKeyboardInput(GLFWwindow *window)
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
     {
         glfwSetWindowShouldClose(window, GL_TRUE);
+    }
+    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+    {
+        cameraPos.y -= 0.1f;
+    }
+    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+    {
+        cameraPos.y += 0.1f;
+    }
+    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+    {
+        cameraPos.x += 0.1;
+    }
+    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+    {
+        cameraPos.x -= 0.1f;
+    }
+    if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS)
+    {
+        cameraPos.z += 0.1f;
+    }
+    if (glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS)
+    {
+        cameraPos.z -= 0.1f;
     }
 }
