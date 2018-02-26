@@ -31,9 +31,8 @@ void main()
     
     float specularIntensity = 0.0;
 
-    if (diffuseIntensity > 0.0) specularIntensity = pow(max(0.0, dot(surfaceToCamera, reflect(light, normal))), 2);
+    if (diffuseIntensity > 0.0) specularIntensity = pow(max(0.0, dot(surfaceToCamera, reflect(light, normal))), 100);
     
-
     vec3 specular = vec3(specularIntensity);
 
     color = vec4( ambient +  diffuse + specular , 1.0f);

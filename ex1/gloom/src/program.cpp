@@ -67,7 +67,7 @@ glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 0.0f);
 glm::vec3 orientation = glm::vec3(0.0f, 0.0f, -1.0f);
 glm::mat4 perspectiveMatrix = glm::perspective(glm::radians(90.0f), (float)windowWidth / windowHeight, 0.1f, 1000.0f);
 glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
-glm::mat4 camera = glm::mat4(1.0f);
+glm::mat4 camera = glm::mat4(0.0f);
 
 glm::vec3 light = glm::vec3(0.0f, 1.0f, 1.0f);
 glm::float32 ambientIntensity = glm::float32(0.40f);
@@ -89,10 +89,10 @@ void runProgram(GLFWwindow *window)
     int textureID = loadGLTexture(image);
 
     float vertices[] = {
-        -20.0f, -20.0f, -10.0f,
-        20.0f, -20.0f, -10.0f,
-        20.0f, 20.0f, -10.0f,
-        -20.0f, 20.0f, -10.0f};
+        -20.0f, -20.0f, 0.0f,
+        20.0f, -20.0f, 0.0f,
+        20.0f, 20.0f, 0.0f,
+        -20.0f, 20.0f, 0.0f};
 
     float textureCoordinates[] = {
         0.5, 0,
@@ -101,10 +101,10 @@ void runProgram(GLFWwindow *window)
         0, 0.5};
 
     float normalVectors[] = {
-        0.0f, 0.0f, -1.0f,
-        0.0f, 0.0f, -1.0f,
-        0.0f, 0.0f, -1.0f,
-        0.0f, 0.0f, -1.0f};
+        0.0f, 0.0f, 1.0f,
+        0.0f, 0.0f, 1.0f,
+        0.0f, 0.0f, 1.0f,
+        0.0f, 0.0f, 1.0f};
 
     unsigned int indices[] = {0, 1, 2, 0, 2, 3};
 
@@ -125,7 +125,7 @@ void runProgram(GLFWwindow *window)
     GLuint cameraUniform = glGetUniformLocation(shader.get(), "camera");
     GLuint lightUniform = glGetUniformLocation(shader.get(), "light");
     GLuint intensityUniform = glGetUniformLocation(shader.get(), "ambientIntensity");
-    GLuint viewUniform = glGetUniformLocation(shader.get(), "cameraPosition");
+    GLuint cameraPositionUniform = glGetUniformLocation(shader.get(), "cameraPosition");
 
     double time = 0;
 
@@ -137,12 +137,12 @@ void runProgram(GLFWwindow *window)
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         camera = glm::lookAt(cameraPos, cameraPos + orientation, up);
-        light = glm::vec3(cos(time), 1.0f, sin(time));
+        light = glm::vec3(cos(time), 0.0f, sin(time));
 
         glUniformMatrix4fv(modelUniform, 1, GL_FALSE, &perspectiveMatrix[0][0]);
         glUniformMatrix4fv(cameraUniform, 1, GL_FALSE, &camera[0][0]);
         glUniform3fv(lightUniform, 1, &light[0]);
-        glUniform3fv(viewUniform, 1, &cameraPos[0]);
+        glUniform3fv(cameraPositionUniform, 1, &cameraPos[0]);
         glUniform1fv(intensityUniform, 1, &ambientIntensity);
 
         // Draw your scene here
