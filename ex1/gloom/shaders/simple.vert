@@ -1,14 +1,21 @@
 #version 430 core
 
-layout(location=0) in vec3 position;
-layout(location=1) in vec2 uv_vert;
+layout(location=0) in vec3 vert;
+layout(location=1) in vec2 vertTextCoord;
+layout(location=2) in vec3 vertNormal;
 
-uniform mat4 matrix;
+uniform mat4 model;
+uniform mat4 camera;
 
-out vec2 uv;
+out vec3 fragVert;
+out vec2 fragTexCoord;
+out vec3 fragNormal;
 
 void main()
 {
-    uv = uv_vert;
-    gl_Position = matrix * vec4(position, 1.0f);
+    fragVert = vert;
+    fragTexCoord = vertTextCoord;
+    fragNormal = vertNormal;
+
+    gl_Position = model * camera * vec4(vert, 1.0f);
 }
