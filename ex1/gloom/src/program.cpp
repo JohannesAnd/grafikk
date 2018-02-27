@@ -30,7 +30,7 @@ int generateVertexArray(float *vertices, float *textureCoordinates, float *norma
     unsigned int normalBufferID;
     glGenBuffers(1, &normalBufferID);
     glBindBuffer(GL_ARRAY_BUFFER, normalBufferID);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * vertexCount, normalVectors, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * vertexCount * 3, normalVectors, GL_STATIC_DRAW);
     glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 3, 0);
     glEnableVertexAttribArray(2);
 
@@ -64,13 +64,15 @@ int loadGLTexture(PNGImage image)
 }
 
 glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 0.0f);
-glm::vec3 orientation = glm::vec3(0.0f, 0.0f, -1.0f);
+glm::vec3 orientation = glm::vec3(-1.0f, 0.0f, -1.0f);
 glm::mat4 perspectiveMatrix = glm::perspective(glm::radians(90.0f), (float)windowWidth / windowHeight, 0.1f, 1000.0f);
 glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
 glm::mat4 camera = glm::mat4(0.0f);
 
 glm::vec3 light = glm::vec3(0.0f, 1.0f, 1.0f);
 glm::float32 ambientIntensity = glm::float32(0.40f);
+glm::mat4 MVP = perspectiveMatrix * camera;
+glm::mat4 MV = camera;
 
 void runProgram(GLFWwindow *window)
 {
@@ -84,32 +86,87 @@ void runProgram(GLFWwindow *window)
     // Set default colour after clearing the colour buffer
     glClearColor(0.3f, 0.5f, 0.8f, 1.0f);
 
-    PNGImage image = loadPNGFile("../gloom/src/textures/diamond.png");
+    PNGImage image = loadPNGFile("../gloom/src/textures/block.png");
     std::cout << "Loaded image with size " << image.width << ", " << image.height << std::endl;
     int textureID = loadGLTexture(image);
 
     float vertices[] = {
-        -20.0f, -20.0f, 0.0f,
-        20.0f, -20.0f, 0.0f,
-        20.0f, 20.0f, 0.0f,
-        -20.0f, 20.0f, 0.0f};
+        -20.0f,
+        -20.0f,
+        20.0f,
+        20.0f,
+        -20.0f,
+        20.0f,
+        20.0f,
+        20.0f,
+        20.0f,
+        -20.0f,
+        20.0f,
+        20.0f,
+
+        20.0f,
+        -20.0f,
+        20.0f,
+        20.0f,
+        -20.0f,
+        -20.0f,
+        20.0f,
+        20.0f,
+        -20.0f,
+        20.0f,
+        20.0f,
+        20.0f,
+
+        20.0f,
+        20.0f,
+        20.0f,
+        20.0f,
+        20.0f,
+        -20.0f,
+        -20.0f,
+        20.0f,
+        -20.0f,
+        -20.0f,
+        20.0f,
+        20.0f,
+    };
 
     float textureCoordinates[] = {
-        0.5, 0,
-        1, 0.5,
-        0.5, 1,
-        0, 0.5};
+        0.25f, 0.33f,
+        0.5f, 0.33f,
+        0.5, 0.66f,
+        0.25f, 0.66f,
+
+        0.25f, 0.33f,
+        0.5f, 0.33f,
+        0.5, 0.66f,
+        0.25f, 0.66f,
+
+        0.25f, 0.66f,
+        0.5f, 0.66f,
+        0.5, 1.0f,
+        0.25f, 1.0f};
 
     float normalVectors[] = {
         0.0f, 0.0f, 1.0f,
         0.0f, 0.0f, 1.0f,
         0.0f, 0.0f, 1.0f,
-        0.0f, 0.0f, 1.0f};
+        0.0f, 0.0f, 1.0f,
 
-    unsigned int indices[] = {0, 1, 2, 0, 2, 3};
+        1.0f, 0.0f, 0.0f,
+        1.0f, 0.0f, 0.0f,
+        1.0f, 0.0f, 0.0f,
+        1.0f, 0.0f, 0.0f,
 
-    unsigned int vertexCount = 4;
-    unsigned int triangleCount = 2;
+        0.0f, 1.0f, 0.0f,
+        0.0f, 1.0f, 0.0f,
+        0.0f, 1.0f, 0.0f,
+        0.0f, 1.0f, 0.0f};
+
+    unsigned int indices[] = {0, 1, 2, 0, 2, 3, 4, 5, 6, 4, 6, 7, 8, 9, 10, 8, 10, 11};
+
+    unsigned int vertexCount = 12;
+    unsigned int triangleCount = 6;
 
     unsigned int vaoID = generateVertexArray(vertices, textureCoordinates, normalVectors, indices, vertexCount, triangleCount);
 
@@ -121,8 +178,8 @@ void runProgram(GLFWwindow *window)
     shader.link();
     shader.activate();
 
-    GLuint modelUniform = glGetUniformLocation(shader.get(), "model");
-    GLuint cameraUniform = glGetUniformLocation(shader.get(), "camera");
+    GLuint MVPUniform = glGetUniformLocation(shader.get(), "MVP");
+    GLuint MVUniform = glGetUniformLocation(shader.get(), "MV");
     GLuint lightUniform = glGetUniformLocation(shader.get(), "light");
     GLuint intensityUniform = glGetUniformLocation(shader.get(), "ambientIntensity");
     GLuint cameraPositionUniform = glGetUniformLocation(shader.get(), "cameraPosition");
@@ -136,11 +193,15 @@ void runProgram(GLFWwindow *window)
         // Clear colour and depth buffers
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+        light = glm::vec3(MV * glm::vec4(glm::vec3(sin(time) * 400.0f, 0.0f, cos(time) * 400.0f), 1.0f));
+        //light = glm::vec3(0.0f);
         camera = glm::lookAt(cameraPos, cameraPos + orientation, up);
-        light = glm::vec3(cos(time), 0.0f, sin(time));
 
-        glUniformMatrix4fv(modelUniform, 1, GL_FALSE, &perspectiveMatrix[0][0]);
-        glUniformMatrix4fv(cameraUniform, 1, GL_FALSE, &camera[0][0]);
+        MV = camera;
+        MVP = perspectiveMatrix * camera;
+
+        glUniformMatrix4fv(MVPUniform, 1, GL_FALSE, &MVP[0][0]);
+        glUniformMatrix4fv(MVUniform, 1, GL_FALSE, &MV[0][0]);
         glUniform3fv(lightUniform, 1, &light[0]);
         glUniform3fv(cameraPositionUniform, 1, &cameraPos[0]);
         glUniform1fv(intensityUniform, 1, &ambientIntensity);
