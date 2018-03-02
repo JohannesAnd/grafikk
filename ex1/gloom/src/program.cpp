@@ -63,7 +63,7 @@ int loadGLTexture(PNGImage image)
     return textureID;
 }
 
-glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 0.0f);
+glm::vec3 cameraPos = glm::vec3(50.0f, 0.0f, 50.0f);
 glm::vec3 orientation = glm::vec3(-1.0f, 0.0f, -1.0f);
 glm::mat4 perspectiveMatrix = glm::perspective(glm::radians(90.0f), (float)windowWidth / windowHeight, 0.1f, 1000.0f);
 glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
