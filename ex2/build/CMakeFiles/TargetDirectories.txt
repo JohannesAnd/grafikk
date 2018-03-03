@@ -1,0 +1,8 @@
+/home/johannes/development/grafikk/ex2/build/CMakeFiles/edit_cache.dir
+/home/johannes/development/grafikk/ex2/build/CMakeFiles/rebuild_cache.dir
+/home/johannes/development/grafikk/ex2/build/CMakeFiles/gloom.dir
+/home/johannes/development/grafikk/ex2/build/gloom/vendor/glfw/CMakeFiles/edit_cache.dir
+/home/johannes/development/grafikk/ex2/build/gloom/vendor/glfw/CMakeFiles/rebuild_cache.dir
+/home/johannes/development/grafikk/ex2/build/gloom/vendor/glfw/src/CMakeFiles/rebuild_cache.dir
+/home/johannes/development/grafikk/ex2/build/gloom/vendor/glfw/src/CMakeFiles/edit_cache.dir
+/home/johannes/development/grafikk/ex2/build/gloom/vendor/glfw/src/CMakeFiles/glfw.dir
