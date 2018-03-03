@@ -6,25 +6,32 @@ in vec3 fragNormal;
 
 uniform mat4 MVP;
 uniform mat4 MV;
+uniform mat4 V;
 
 uniform vec3 cameraPosition;
 uniform vec3 light;
 uniform float ambientIntensity;
 
 
-layout(binding=0) uniform sampler2D materialSampler;
+layout(binding=0) uniform sampler2D textureSampler;
+layout(binding=1) uniform sampler2D ambientSampler;
 
 out vec4 color;
 
 
 void main()
 {
+    vec4 surfaceColor = texture(textureSampler, fragTexCoord);
+    vec4 ambientOcclusionValue = texture(textureSampler, fragTexCoord);
+
     vec3 normal = fragNormal;
     vec3 surfacePos = fragVert;
-    vec4 surfaceColor = texture(materialSampler, fragTexCoord);
-    vec3 surfaceToCamera = normalize(vec3(MV*vec4(cameraPosition, 1.0f)) - surfacePos);
-    vec3 surfaceToLight = -normalize(vec3(MV*vec4(light, 1.0f)) - surfacePos);
 
+    vec3 surfaceToCamera = normalize(vec3(MV*vec4(cameraPosition, 1.0f)) - surfacePos);
+    vec3 surfaceToLight = -normalize(vec3(V*vec4(light, 1.0f)) - surfacePos);
+
+    float aperture = 2.0 * float(ambientOcclusionValue) * float(ambientOcclusionValue);
+    float saturation = abs(dot(surfaceToLight, normal)) + aperture - 1;
 
     float diffuseIntensity = max(0.0, dot(normal, surfaceToLight));
     
@@ -34,5 +41,5 @@ void main()
         specularIntensity = pow(max(0.0, dot(surfaceToCamera, reflect(-surfaceToLight, normal))), 1000);
     }
     
-    color = vec4((ambientIntensity + diffuseIntensity + specularIntensity) * surfaceColor.rgb , 1.0f);
+    color = vec4(vec3((ambientIntensity + diffuseIntensity + specularIntensity) )  * surfaceColor.rgb , 1.0f);
 }

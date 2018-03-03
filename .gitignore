@@ -1,3 +1,4 @@
 ex1/[Bb]uild/*
+ex2/[Bb]uild/*
 !*/.gitkeep
 .vscode

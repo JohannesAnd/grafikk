@@ -64,16 +64,20 @@ int loadGLTexture(PNGImage image)
     return textureID;
 }
 
-glm::vec3 cameraPos = glm::vec3(50.0f, 0.0f, 50.0f);
-glm::vec3 orientation = glm::vec3(0.0f, 0.0f, -1.0f);
+glm::vec3 cameraPos = glm::vec3(0.0f, 1.0f, 5.0f);
+glm::vec3 orientation = glm::vec3(0.0f, 0.0f, 1.0f);
 glm::mat4 perspectiveMatrix = glm::perspective(glm::radians(90.0f), (float)windowWidth / windowHeight, 0.1f, 1000.0f);
 glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
 glm::mat4 camera = glm::mat4(0.0f);
 
-glm::vec3 light = glm::vec3(0.0f, 1.0f, 1.0f);
-glm::float32 ambientIntensity = glm::float32(0.40f);
+glm::vec3 light = glm::vec3(0.0f, 200.0f, 400.0f);
+glm::float32 ambientIntensity = glm::float32(0.80f);
+glm::mat4 roatationMatrix = glm::rotate(glm::radians(0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 glm::mat4 MVP = perspectiveMatrix * camera;
-glm::mat4 MV = camera;
+glm::mat4 MV = camera * roatationMatrix;
+glm::mat4 V = camera;
+
+glm::float32 rotation = 0;
 
 void runProgram(GLFWwindow *window)
 {
@@ -87,15 +91,20 @@ void runProgram(GLFWwindow *window)
     // Set default colour after clearing the colour buffer
     glClearColor(0.3f, 0.5f, 0.8f, 1.0f);
 
-    PNGImage image = loadPNGFile("../gloom/src/assets/MFEP_Rock_3_DefaultMaterial_AlbedoTransparency.png");
-    std::cout << "Loaded image with size " << image.width << ", " << image.height << std::endl;
-    int textureID = loadGLTexture(image);
+    PNGImage texture = loadPNGFile("../gloom/src/assets/MFEP_Rock_3_DefaultMaterial_AlbedoTransparency.png");
+    std::cout << "Loaded image with size " << texture.width << ", " << texture.height << std::endl;
+    int textureID = loadGLTexture(texture);
+
+    PNGImage ambient = loadPNGFile("../gloom/src/assets/MFEP_Rock_3_DefaultMaterial_AlbedoTransparency.png");
+    std::cout << "Loaded image with size " << ambient.width << ", " << ambient.height << std::endl;
+    int ambientID = loadGLTexture(ambient);
 
     Mesh mesh = loadOBJ("../gloom/src/assets/MFEP_Rock_3.obj");
 
     unsigned int vaoID = generateVertexArray(mesh.vertices, mesh.textureCoordinates, mesh.normals, mesh.indices, mesh.vertexCount, mesh.indexCount);
 
     glBindTextureUnit(0, textureID);
+    glBindTextureUnit(1, ambientID);
 
     Gloom::Shader shader;
     shader.attach("../gloom/shaders/simple.vert");
@@ -105,6 +114,7 @@ void runProgram(GLFWwindow *window)
 
     GLuint MVPUniform = glGetUniformLocation(shader.get(), "MVP");
     GLuint MVUniform = glGetUniformLocation(shader.get(), "MV");
+    GLuint VUniform = glGetUniformLocation(shader.get(), "V");
     GLuint lightUniform = glGetUniformLocation(shader.get(), "light");
     GLuint intensityUniform = glGetUniformLocation(shader.get(), "ambientIntensity");
     GLuint cameraPositionUniform = glGetUniformLocation(shader.get(), "cameraPosition");
@@ -122,11 +132,13 @@ void runProgram(GLFWwindow *window)
         //light = glm::vec3(0.0f);
         camera = glm::lookAt(cameraPos, cameraPos + orientation, up);
 
-        MV = camera;
-        MVP = perspectiveMatrix * camera;
+        V = camera;
+        MV = camera * roatationMatrix;
+        MVP = perspectiveMatrix * camera * roatationMatrix;
 
         glUniformMatrix4fv(MVPUniform, 1, GL_FALSE, &MVP[0][0]);
         glUniformMatrix4fv(MVUniform, 1, GL_FALSE, &MV[0][0]);
+        glUniformMatrix4fv(VUniform, 1, GL_FALSE, &V[0][0]);
         glUniform3fv(lightUniform, 1, &light[0]);
         glUniform3fv(cameraPositionUniform, 1, &cameraPos[0]);
         glUniform1fv(intensityUniform, 1, &ambientIntensity);
@@ -174,5 +186,13 @@ void handleKeyboardInput(GLFWwindow *window)
     if (glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS)
     {
         cameraPos.z -= 0.1f;
+    }
+    if (glfwGetKey(window, GLFW_KEY_J) == GLFW_PRESS)
+    {
+        roatationMatrix = roatationMatrix * glm::rotate(glm::radians(3.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+    }
+    if (glfwGetKey(window, GLFW_KEY_K) == GLFW_PRESS)
+    {
+        roatationMatrix = roatationMatrix * glm::rotate(glm::radians(-3.0f), glm::vec3(0.0f, 1.0f, 0.0f));
     }
 }
