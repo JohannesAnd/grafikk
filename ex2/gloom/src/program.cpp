@@ -52,8 +52,8 @@ int loadGLTexture(PNGImage image)
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image.width, image.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, &image.pixels[0]);
 
@@ -64,14 +64,14 @@ int loadGLTexture(PNGImage image)
     return textureID;
 }
 
-glm::vec3 cameraPos = glm::vec3(0.0f, 1.0f, 5.0f);
+glm::vec3 cameraPos = glm::vec3(-2.0f, 1.0f, -8.0f);
 glm::vec3 orientation = glm::vec3(0.0f, 0.0f, 1.0f);
 glm::mat4 perspectiveMatrix = glm::perspective(glm::radians(90.0f), (float)windowWidth / windowHeight, 0.1f, 1000.0f);
 glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
 glm::mat4 camera = glm::mat4(0.0f);
 
 glm::vec3 light = glm::vec3(0.0f, 200.0f, 400.0f);
-glm::float32 ambientIntensity = glm::float32(0.80f);
+glm::float32 ambientIntensity = glm::float32(0.50f);
 glm::mat4 roatationMatrix = glm::rotate(glm::radians(0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 glm::mat4 MVP = perspectiveMatrix * camera;
 glm::mat4 MV = camera * roatationMatrix;
@@ -95,9 +95,17 @@ void runProgram(GLFWwindow *window)
     std::cout << "Loaded image with size " << texture.width << ", " << texture.height << std::endl;
     int textureID = loadGLTexture(texture);
 
-    PNGImage ambient = loadPNGFile("../gloom/src/assets/MFEP_Rock_3_DefaultMaterial_AlbedoTransparency.png");
+    PNGImage ambient = loadPNGFile("../gloom/src/assets/MFEP_Rock_3_DefaultMaterial_AmbientOcclusion.png");
     std::cout << "Loaded image with size " << ambient.width << ", " << ambient.height << std::endl;
     int ambientID = loadGLTexture(ambient);
+
+    PNGImage animation = loadPNGFile("../gloom/src/assets/animation.png");
+    std::cout << "Loaded image with size " << ambient.width << ", " << ambient.height << std::endl;
+    int animationID = loadGLTexture(animation);
+
+    PNGImage normal = loadPNGFile("../gloom/src/assets/MFEP_Rock_3_DefaultMaterial_Normal.png");
+    std::cout << "Loaded image with size " << ambient.width << ", " << ambient.height << std::endl;
+    int normalID = loadGLTexture(normal);
 
     Mesh mesh = loadOBJ("../gloom/src/assets/MFEP_Rock_3.obj");
 
@@ -105,6 +113,8 @@ void runProgram(GLFWwindow *window)
 
     glBindTextureUnit(0, textureID);
     glBindTextureUnit(1, ambientID);
+    glBindTextureUnit(2, animationID);
+    glBindTextureUnit(3, normalID);
 
     Gloom::Shader shader;
     shader.attach("../gloom/shaders/simple.vert");
@@ -117,9 +127,10 @@ void runProgram(GLFWwindow *window)
     GLuint VUniform = glGetUniformLocation(shader.get(), "V");
     GLuint lightUniform = glGetUniformLocation(shader.get(), "light");
     GLuint intensityUniform = glGetUniformLocation(shader.get(), "ambientIntensity");
+    GLuint timeUniform = glGetUniformLocation(shader.get(), "time");
     GLuint cameraPositionUniform = glGetUniformLocation(shader.get(), "cameraPosition");
 
-    double time = 0;
+    float time = 0;
 
     // Rendering Loop
     while (!glfwWindowShouldClose(window))
@@ -142,6 +153,7 @@ void runProgram(GLFWwindow *window)
         glUniform3fv(lightUniform, 1, &light[0]);
         glUniform3fv(cameraPositionUniform, 1, &cameraPos[0]);
         glUniform1fv(intensityUniform, 1, &ambientIntensity);
+        glUniform1fv(timeUniform, 1, &time);
 
         // Draw your scene here
         glBindVertexArray(vaoID);
