@@ -136,7 +136,7 @@ glm::mat4 perspectiveMatrix = glm::perspective(glm::radians(90.0f), (float)windo
 glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
 glm::mat4 camera = glm::mat4(0.0f);
 
-glm::vec3 light = glm::vec3(0.0f, 200.0f, 400.0f);
+glm::vec3 light = glm::vec3(100.0f, 200.0f, 400.0f);
 glm::float32 ambientIntensity = glm::float32(0.50f);
 glm::mat4 roatationMatrix = glm::rotate(glm::radians(0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 glm::mat4 MVP = perspectiveMatrix * camera;
@@ -183,35 +183,6 @@ void runProgram(GLFWwindow *window)
     glBindTextureUnit(2, animationID);
     glBindTextureUnit(3, normalID);
 
-    // Create billboard
-
-    float vertices[] = {
-        -20.0f,
-        -20.0f,
-        20.0f,
-        20.0f,
-        -20.0f,
-        20.0f,
-        20.0f,
-        20.0f,
-        20.0f,
-        -20.0f,
-        20.0f,
-        20.0f};
-
-    unsigned int indices[] = {0, 1, 2, 0, 2, 3, 4};
-
-    unsigned int billboardVertexArrayID;
-    glGenVertexArrays(1, &billboardVertexArrayID);
-    glBindVertexArray(billboardVertexArrayID);
-
-    unsigned int vertexBufferID;
-    glGenBuffers(1, &vertexBufferID);
-    glBindBuffer(GL_ARRAY_BUFFER, vertexBufferID);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * vertexCount * 3, vertices, GL_STATIC_DRAW);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 3, 0);
-    glEnableVertexAttribArray(0);
-
     // Shader stuff
     Gloom::Shader shader;
     shader.attach("../gloom/shaders/simple.vert");
@@ -257,7 +228,6 @@ void runProgram(GLFWwindow *window)
 
         // Draw your scene here
         glBindVertexArray(vaoID);
-        glBindVertexArray(billboardVertexArrayID);
         glDrawElements(GL_TRIANGLES, mesh.indexCount, GL_UNSIGNED_INT, 0);
 
         // Handle other events
